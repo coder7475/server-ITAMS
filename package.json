@@ -1,0 +1,14 @@
+{
+  "name": "server-itams",
+  "version": "1.0.0",
+  "description": "This is the backend for IT Asset Management System Project.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "Robiul Hossain",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
