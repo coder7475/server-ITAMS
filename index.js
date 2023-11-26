@@ -3,6 +3,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD}@cluster0.xjslrno.mongodb.net/?retryWrites=true&w=majority`
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // middleware
 app.use(cors());
@@ -64,6 +65,22 @@ async function run() {
 
       res.send({ admin })
 
+    })
+
+    // ? Payment Intent
+    app.post("/api/v1/create-payment-intent", async(req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: "usd",
+        payment_method_types: ['card']
+      });
+    
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     })
 
     // Send a ping to confirm a successful connection
