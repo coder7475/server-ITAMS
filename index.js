@@ -51,7 +51,7 @@ async function run() {
     });
 
     // check if user is admin
-    app.get('/users/admin/:email', async(req, res) => {
+    app.get('/api/v1/users/admin/:email', async(req, res) => {
       const email = req.params.email;
 
       const query = { email: email };
