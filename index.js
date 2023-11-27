@@ -29,6 +29,7 @@ async function run() {
     const myDB = client.db("assetsIT");
     const userCollection = myDB.collection("users");
     const paymentCollection = myDB.collection("payments");
+    const assetCollection = myDB.collection("assets");
 
     // users related apis
     // ? get all users in the database
@@ -103,6 +104,15 @@ async function run() {
     app.post("/api/v1/payments", async(req, res) => {
       const payment = req.body;
       const result = await paymentCollection.insertOne(payment);
+      res.send(result);
+    })
+
+    // Assets related api
+
+    //? add a new asset to database
+    app.post("/api/v1/admin/addAnAsset", async(req, res) => {
+      const asset = req.body;
+      const result = await assetCollection.insertOne(asset);
       res.send(result);
     })
 
