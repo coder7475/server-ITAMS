@@ -30,6 +30,7 @@ async function run() {
     const userCollection = myDB.collection("users");
     const paymentCollection = myDB.collection("payments");
     const assetCollection = myDB.collection("assets");
+    const requestCollection = myDB.collection("requests");
 
     // users related apis
     // ? get all users in the database
@@ -113,6 +114,13 @@ async function run() {
     app.post("/api/v1/admin/addAnAsset", async(req, res) => {
       const asset = req.body;
       const result = await assetCollection.insertOne(asset);
+      res.send(result);
+    })
+
+    // save custom request to api
+    app.post("/api/v1/user/makeCustomRequest", async(req, res) => {
+      const custRequest = req.body;
+      const result = await requestCollection.insertOne(custRequest);
       res.send(result);
     })
 
