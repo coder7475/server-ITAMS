@@ -40,6 +40,16 @@ async function run() {
       res.send(result);
     });
 
+    // request for all asset of the company
+    app.get("/api/v1/allAssets/:company", async(req, res) => {
+      const company = req.params.company;
+      // console.log(company);
+      const query = { company };
+
+      const result = await assetCollection.find(query).toArray();
+      res.send(result);
+    })
+
     // insert user into database
     // ? create user in users collection if it does not already exits
     app.post("/api/v1/users", async (req, res) => {
