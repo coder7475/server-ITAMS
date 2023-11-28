@@ -45,6 +45,12 @@ async function run() {
       const company = req.params.company;
       const query = { company };
       // console.log(query);
+      // Search By name
+      const value = req?.query?.search;
+      
+      if (value){
+        query["name"] = { $regex: value, $options: 'i' };
+      } 
       const result = await requestCollection.find(query).toArray();
       res.send(result);
     });
@@ -85,7 +91,15 @@ async function run() {
       // console.log(data);
       const result = await requestCollection.updateOne(filter, updatedDoc);
       res.send(result);
-      
+
+    })
+
+    // get all custom request
+    app.get("/api/v1/admin/allCustomRequest/:company", async (req, res) => {
+      const company = req.params.company;
+      const query = { company };
+      const result = await customRequestsCol.find(query).toArray();
+      res.send(result);
     })
 
     // request for all asset of the company
