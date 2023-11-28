@@ -40,6 +40,12 @@ async function run() {
       res.send(result);
     });
 
+    // get all requests from the database
+    app.get("/api/v1/admin/allRequest", async (req, res) => {
+      const result = await requestCollection.find().toArray();
+      res.send(result);
+    });
+
     // request for all asset of the company
     app.get("/api/v1/allAssets/:company", async(req, res) => {
       const company = req.params.company;
@@ -50,6 +56,7 @@ async function run() {
 
       if (name) query["name"] = { $regex: name, $options: 'i' };
 
+  
 
       const result = await assetCollection.find(query).toArray();
       res.send(result);
