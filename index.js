@@ -31,6 +31,7 @@ async function run() {
     const paymentCollection = myDB.collection("payments");
     const assetCollection = myDB.collection("assets");
     const requestCollection = myDB.collection("requests");
+    const customRequestsCol = myDB.collection("cusRequests");
 
     // users related apis
     // ? get all users in the database
@@ -117,10 +118,17 @@ async function run() {
       res.send(result);
     })
 
-    // save custom request to api
+    // save asset request api
+    app.post("/api/v1/user/makeAssetRequest", async(req, res) => {
+      const request = req.body;
+      const result = await requestCollection.insertOne(request);
+      res.send(result);
+    })
+
+    // save custom request  api
     app.post("/api/v1/user/makeCustomRequest", async(req, res) => {
       const custRequest = req.body;
-      const result = await requestCollection.insertOne(custRequest);
+      const result = await customRequestsCol.insertOne(custRequest);
       res.send(result);
     })
 
