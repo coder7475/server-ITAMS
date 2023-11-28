@@ -94,6 +94,23 @@ async function run() {
 
     })
 
+     // reject custom Request
+     app.put("/api/v1/admin/rejectCustomRequest/:name", async (req, res) => {
+      const name = req.params.name;
+      const filter = { name };
+      
+      const updatedDoc = {
+         $set: {
+          status: "rejected"
+         }
+      }
+    
+      // console.log(data);
+      const result = await customRequestsCol.updateOne(filter, updatedDoc);
+      res.send(result);
+
+    })
+
     // get all custom request
     app.get("/api/v1/admin/allCustomRequest/:company", async (req, res) => {
       const company = req.params.company;
@@ -102,7 +119,7 @@ async function run() {
       res.send(result);
     })
 
-     // approve request
+     // approve custom request
      app.put("/api/v1/admin/approveCustomRequest/:name", async (req, res) => {
       const name = req.params.name;
       const filter = { name };
@@ -114,6 +131,7 @@ async function run() {
           status: "approved"
          }
       }
+
     
       const added = await assetCollection.insertOne(data);
       // console.log(data);
@@ -121,6 +139,8 @@ async function run() {
       
       res.send({ added, result });
     })
+
+    
 
     // request for all asset of the company
     app.get("/api/v1/allAssets/:company", async(req, res) => {
