@@ -44,10 +44,49 @@ async function run() {
     app.get("/api/v1/admin/allRequest/:company", async (req, res) => {
       const company = req.params.company;
       const query = { company };
+      // console.log(query);
       const result = await requestCollection.find(query).toArray();
-
       res.send(result);
     });
+    // approve request
+    app.put("/api/v1/admin/approveRequest/:name", async (req, res) => {
+      const name = req.params.name;
+      const filter = { name };
+      
+      // const data = req.body;
+      // console.log(data);
+      const updatedDoc = {
+         $set: {
+          status: "approved"
+         }
+      }
+      const updatedDoc2 = {
+        $inc: { quantity: -1 }
+      }
+      // console.log(data);
+      const result = await requestCollection.updateOne(filter, updatedDoc);
+      const result2 = await assetCollection.updateOne(filter, updatedDoc2);
+      res.send({ result, result2});
+    })
+
+    // rejectRequest
+    app.put("/api/v1/admin/rejectRequest/:name", async (req, res) => {
+      const name = req.params.name;
+      const filter = { name };
+      
+      // const data = req.body;
+      // console.log(data);
+      const updatedDoc = {
+         $set: {
+          status: "rejected"
+         }
+      }
+    
+      // console.log(data);
+      const result = await requestCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+      
+    })
 
     // request for all asset of the company
     app.get("/api/v1/allAssets/:company", async(req, res) => {
