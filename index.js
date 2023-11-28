@@ -45,6 +45,11 @@ async function run() {
       const company = req.params.company;
       // console.log(company);
       const query = { company };
+      // Search By asset name
+      const name = req.query.name;
+
+      if (name) query["name"] = { $regex: name, $options: 'i' };
+
 
       const result = await assetCollection.find(query).toArray();
       res.send(result);
