@@ -102,6 +102,26 @@ async function run() {
       res.send(result);
     })
 
+     // approve request
+     app.put("/api/v1/admin/approveCustomRequest/:name", async (req, res) => {
+      const name = req.params.name;
+      const filter = { name };
+      const data = req.body;
+      // const data = req.body;
+      // console.log(data);
+      const updatedDoc = {
+         $set: {
+          status: "approved"
+         }
+      }
+    
+      const added = await assetCollection.insertOne(data);
+      // console.log(data);
+      const result = await customRequestsCol.updateOne(filter, updatedDoc);
+      
+      res.send({ added, result });
+    })
+
     // request for all asset of the company
     app.get("/api/v1/allAssets/:company", async(req, res) => {
       const company = req.params.company;
