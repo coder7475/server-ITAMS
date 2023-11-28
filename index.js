@@ -41,8 +41,11 @@ async function run() {
     });
 
     // get all requests from the database
-    app.get("/api/v1/admin/allRequest", async (req, res) => {
-      const result = await requestCollection.find().toArray();
+    app.get("/api/v1/admin/allRequest/:company", async (req, res) => {
+      const company = req.params.company;
+      const query = { company };
+      const result = await requestCollection.find(query).toArray();
+
       res.send(result);
     });
 
