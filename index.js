@@ -248,7 +248,7 @@ async function run() {
     //? add an api to update an asset
     app.patch("/api/v1/admin/updateAnAsset/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const filter = { _id: new ObjectId(id)};
       const data = req.body;
       const updatedDoc = {
@@ -256,6 +256,19 @@ async function run() {
       }
 
       const result = await assetCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    // update profile user data
+    app.patch("/api/v1/updateProfile/:email", async (req, res) => {
+      const email = req.params.email ;
+      const filter = { email };
+      const data = req.data;
+      const updatedDoc = {
+        $set: data
+      }
+
+      const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     })
 
