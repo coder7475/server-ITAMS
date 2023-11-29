@@ -262,8 +262,10 @@ async function run() {
     // update profile user data
     app.patch("/api/v1/updateProfile/:email", async (req, res) => {
       const email = req.params.email ;
-      const filter = { email };
-      const data = req.data;
+      const filter = { email: email };
+      // console.log(filter);
+      const data = req.body;
+      // console.log(data);
       const updatedDoc = {
         $set: data
       }
