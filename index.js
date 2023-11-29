@@ -146,19 +146,7 @@ async function run() {
       res.send(result);
     });
 
-    // request for all asset of the company
-    app.get("/api/v1/allAssets/:company", async (req, res) => {
-      const company = req.params.company;
-      // console.log(company);
-      const query = { company };
-      // Search By asset name
-      const name = req.query.name;
-
-      if (name) query["name"] = { $regex: name, $options: "i" };
-
-      const result = await assetCollection.find(query).toArray();
-      res.send(result);
-    });
+   
 
     // insert user into database
     // ? create user in users collection if it does not already exits
@@ -230,6 +218,28 @@ async function run() {
     });
 
     // Assets related api
+    // ? Get a specific asset
+    app.get("/api/v1/allAssets/:id", async(req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await assetCollection.findOne(query).toArray();
+      res.send(result);
+    })
+
+    // ?request for all asset of the company
+    app.get("/api/v1/allAssets/:company", async (req, res) => {
+      const company = req.params.company;
+      // console.log(company);
+      const query = { company };
+      // Search By asset name
+      const name = req.query.name;
+
+      if (name) query["name"] = { $regex: name, $options: "i" };
+
+      const result = await assetCollection.find(query).toArray();
+      res.send(result);
+    });
 
     //? add a new asset to database
     app.post("/api/v1/admin/addAnAsset", async (req, res) => {
