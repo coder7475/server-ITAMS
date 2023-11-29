@@ -245,6 +245,20 @@ async function run() {
       res.send(result);
     });
 
+    //? add an api to update an asset
+    app.patch("/api/v1/admin/updateAnAsset/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id)};
+      const data = req.body;
+      const updatedDoc = {
+        $set: data
+      }
+
+      const result = await assetCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
     // save asset request api
     app.post("/api/v1/user/makeAssetRequest", async (req, res) => {
       const request = req.body;
