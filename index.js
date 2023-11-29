@@ -47,10 +47,10 @@ async function run() {
       // console.log(query);
       // Search By name
       const value = req?.query?.search;
-      
-      if (value){
-        query["name"] = { $regex: value, $options: 'i' };
-      } 
+
+      if (value) {
+        query["name"] = { $regex: value, $options: "i" };
+      }
       const result = await requestCollection.find(query).toArray();
       res.send(result);
     });
@@ -58,58 +58,56 @@ async function run() {
     app.put("/api/v1/admin/approveRequest/:name", async (req, res) => {
       const name = req.params.name;
       const filter = { name };
-      
+
       // const data = req.body;
       // console.log(data);
       const updatedDoc = {
-         $set: {
-          status: "approved"
-         }
-      }
+        $set: {
+          status: "approved",
+        },
+      };
       const updatedDoc2 = {
-        $inc: { quantity: -1 }
-      }
+        $inc: { quantity: -1 },
+      };
       // console.log(data);
       const result = await requestCollection.updateOne(filter, updatedDoc);
       const result2 = await assetCollection.updateOne(filter, updatedDoc2);
-      res.send({ result, result2});
-    })
+      res.send({ result, result2 });
+    });
 
     // rejectRequest
     app.put("/api/v1/admin/rejectRequest/:name", async (req, res) => {
       const name = req.params.name;
       const filter = { name };
-      
+
       // const data = req.body;
       // console.log(data);
       const updatedDoc = {
-         $set: {
-          status: "rejected"
-         }
-      }
-    
+        $set: {
+          status: "rejected",
+        },
+      };
+
       // console.log(data);
       const result = await requestCollection.updateOne(filter, updatedDoc);
       res.send(result);
+    });
 
-    })
-
-     // reject custom Request
-     app.put("/api/v1/admin/rejectCustomRequest/:name", async (req, res) => {
+    // reject custom Request
+    app.put("/api/v1/admin/rejectCustomRequest/:name", async (req, res) => {
       const name = req.params.name;
       const filter = { name };
-      
+
       const updatedDoc = {
-         $set: {
-          status: "rejected"
-         }
-      }
-    
+        $set: {
+          status: "rejected",
+        },
+      };
+
       // console.log(data);
       const result = await customRequestsCol.updateOne(filter, updatedDoc);
       res.send(result);
-
-    })
+    });
 
     // get all custom request
     app.get("/api/v1/admin/allCustomRequest/:company", async (req, res) => {
@@ -117,46 +115,50 @@ async function run() {
       const query = { company };
       const result = await customRequestsCol.find(query).toArray();
       res.send(result);
-    })
+    });
 
-     // approve custom request
-     app.put("/api/v1/admin/approveCustomRequest/:name", async (req, res) => {
+    // approve custom request
+    app.put("/api/v1/admin/approveCustomRequest/:name", async (req, res) => {
       const name = req.params.name;
       const filter = { name };
       const data = req.body;
       // const data = req.body;
       // console.log(data);
       const updatedDoc = {
-         $set: {
-          status: "approved"
-         }
-      }
+        $set: {
+          status: "approved",
+        },
+      };
 
-    
       const added = await assetCollection.insertOne(data);
       // console.log(data);
       const result = await customRequestsCol.updateOne(filter, updatedDoc);
-      
-      res.send({ added, result });
-    })
 
-    
+      res.send({ added, result });
+    });
+
+    // delete asset from the asset list
+    app.delete("/api/v1/admin/deleteAsset/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await assetCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // request for all asset of the company
-    app.get("/api/v1/allAssets/:company", async(req, res) => {
+    app.get("/api/v1/allAssets/:company", async (req, res) => {
       const company = req.params.company;
       // console.log(company);
       const query = { company };
       // Search By asset name
       const name = req.query.name;
 
-      if (name) query["name"] = { $regex: name, $options: 'i' };
-
-  
+      if (name) query["name"] = { $regex: name, $options: "i" };
 
       const result = await assetCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
     // insert user into database
     // ? create user in users collection if it does not already exits
@@ -221,60 +223,60 @@ async function run() {
     });
 
     // saved the payment history
-    app.post("/api/v1/payments", async(req, res) => {
+    app.post("/api/v1/payments", async (req, res) => {
       const payment = req.body;
       const result = await paymentCollection.insertOne(payment);
       res.send(result);
-    })
+    });
 
     // Assets related api
 
     //? add a new asset to database
-    app.post("/api/v1/admin/addAnAsset", async(req, res) => {
+    app.post("/api/v1/admin/addAnAsset", async (req, res) => {
       const asset = req.body;
       const result = await assetCollection.insertOne(asset);
       res.send(result);
-    })
+    });
 
     // save asset request api
-    app.post("/api/v1/user/makeAssetRequest", async(req, res) => {
+    app.post("/api/v1/user/makeAssetRequest", async (req, res) => {
       const request = req.body;
       const result = await requestCollection.insertOne(request);
       res.send(result);
-    })
+    });
 
     // save custom request  api
-    app.post("/api/v1/user/makeCustomRequest", async(req, res) => {
+    app.post("/api/v1/user/makeCustomRequest", async (req, res) => {
       const custRequest = req.body;
       const result = await customRequestsCol.insertOne(custRequest);
       res.send(result);
-    })
+    });
 
     // add a user to the team via admin
-    app.put("/api/v1/admin/addToTeam/:id", async(req, res) => {
+    app.put("/api/v1/admin/addToTeam/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const data = req.body;
       const updatedDoc = {
-        $set: data
-      }
+        $set: data,
+      };
       // console.log(data);
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
-    })
+    });
 
     // remove a user to the team via admin
-    app.put("/api/v1/admin/removeFromTeam/:id", async(req, res) => {
+    app.put("/api/v1/admin/removeFromTeam/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const data = req.body;
       const updatedDoc = {
-        $unset: data
-      }
+        $unset: data,
+      };
       // console.log(data);
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
-    })
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
