@@ -371,9 +371,9 @@ async function run() {
       const limitedStockItems = await assetCollection
         .find(stock)
         .toArray();
-      const returnableItems = await assetCollection
-        .countDocuments({ type: "returnable"})
-      const nonReturnableItems = await assetCollection
+      const returnableItems = await requestCollection
+        .countDocuments({ type: "returnable "})
+      const nonReturnableItems = await requestCollection
         .countDocuments({ type: "non-returnable" })
         
 
