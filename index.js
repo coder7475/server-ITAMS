@@ -1,12 +1,19 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD}@cluster0.xjslrno.mongodb.net/?retryWrites=true&w=majority`;
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  })
+);
 app.use(express.json());
 
 // MongoDB connection
@@ -230,13 +237,13 @@ async function run() {
     });
 
     // Assets related api
-    
-    app.get("/api/v1/admin/allAssets/:id", async(req, res) => {
+
+    app.get("/api/v1/admin/allAssets/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await assetCollection.findOne(query);
       res.send(result);
-    })
+    });
 
     //? add a new asset to database
     app.post("/api/v1/admin/addAnAsset", async (req, res) => {
@@ -249,30 +256,30 @@ async function run() {
     app.patch("/api/v1/admin/updateAnAsset/:id", async (req, res) => {
       const id = req.params.id;
       // console.log(id);
-      const filter = { _id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const data = req.body;
       const updatedDoc = {
-        $set: data
-      }
+        $set: data,
+      };
 
       const result = await assetCollection.updateOne(filter, updatedDoc);
       res.send(result);
-    })
+    });
 
     // update profile user data
     app.patch("/api/v1/updateProfile/:email", async (req, res) => {
-      const email = req.params.email ;
+      const email = req.params.email;
       const filter = { email: email };
       // console.log(filter);
       const data = req.body;
       // console.log(data);
       const updatedDoc = {
-        $set: data
-      }
+        $set: data,
+      };
 
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
-    })
+    });
 
     // save asset request api
     app.post("/api/v1/user/makeAssetRequest", async (req, res) => {
@@ -312,6 +319,24 @@ async function run() {
       // console.log(data);
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
+    });
+
+    // auth jwt realted api
+    // Auth related api
+    app.post("/api/v1/create-token", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production" ? true : false,
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          path: "/",
+        })
+        .send({ success: true });
     });
 
     // Send a ping to confirm a successful connection
