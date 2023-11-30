@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD}@cluster0.xjslrno.mongodb.net/?retryWrites=true&w=majority`;
@@ -15,22 +16,23 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 
 // define middleware
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
-
+  console.log(token);
   if (!token)
     return res.status(401).send({ message: "Unauthorized" });
 
   // verify with jwt token
-  jwt.verify(token, process.env.SECRET, (err, decoded) => {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) return res.status(401).send({ message: "Unauthorized" });
 
     // token passed verification
     req.user = decoded;
-    next();
   });
+  next();
 };
 
 // MongoDB connection
@@ -201,7 +203,7 @@ async function run() {
 
     // check if user is admin
     //? get admins details
-    app.get("/api/v1/users/admin/:email", async (req, res) => {
+    app.get("/api/v1/users/admin/:email",  async (req, res) => {
       const email = req.params.email;
 
       const query = { email: email };
