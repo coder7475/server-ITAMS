@@ -16,6 +16,23 @@ app.use(
 );
 app.use(express.json());
 
+// define middleware
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+
+  if (!token)
+    return res.status(401).send({ message: "Unauthorized" });
+
+  // verify with jwt token
+  jwt.verify(token, process.env.SECRET, (err, decoded) => {
+    if (err) return res.status(401).send({ message: "Unauthorized" });
+
+    // token passed verification
+    req.user = decoded;
+    next();
+  });
+};
+
 // MongoDB connection
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
@@ -42,13 +59,13 @@ async function run() {
 
     // users related apis
     // ? get all users in the database
-    app.get("/api/v1/users", async (req, res) => {
+    app.get("/api/v1/users", verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
 
     // get all requests from the database
-    app.get("/api/v1/admin/allRequest/:company", async (req, res) => {
+    app.get("/api/v1/admin/allRequest/:company", verifyToken, async (req, res) => {
       const company = req.params.company;
       const query = { company };
       // console.log(query);
@@ -62,7 +79,7 @@ async function run() {
       res.send(result);
     });
     // approve request
-    app.put("/api/v1/admin/approveRequest/:name", async (req, res) => {
+    app.put("/api/v1/admin/approveRequest/:name", verifyToken, async (req, res) => {
       const name = req.params.name;
       const filter = { name };
 
@@ -83,7 +100,7 @@ async function run() {
     });
 
     // rejectRequest
-    app.put("/api/v1/admin/rejectRequest/:name", async (req, res) => {
+    app.put("/api/v1/admin/rejectRequest/:name", verifyToken, async (req, res) => {
       const name = req.params.name;
       const filter = { name };
 
@@ -101,7 +118,7 @@ async function run() {
     });
 
     // reject custom Request
-    app.put("/api/v1/admin/rejectCustomRequest/:name", async (req, res) => {
+    app.put("/api/v1/admin/rejectCustomRequest/:name", verifyToken, async (req, res) => {
       const name = req.params.name;
       const filter = { name };
 
@@ -117,7 +134,7 @@ async function run() {
     });
 
     // get all custom request
-    app.get("/api/v1/admin/allCustomRequest/:company", async (req, res) => {
+    app.get("/api/v1/admin/allCustomRequest/:company", verifyToken, async (req, res) => {
       const company = req.params.company;
       const query = { company };
       const result = await customRequestsCol.find(query).toArray();
@@ -125,7 +142,7 @@ async function run() {
     });
 
     // approve custom request
-    app.put("/api/v1/admin/approveCustomRequest/:name", async (req, res) => {
+    app.put("/api/v1/admin/approveCustomRequest/:name", verifyToken, async (req, res) => {
       const name = req.params.name;
       const filter = { name };
       const data = req.body;
@@ -145,7 +162,7 @@ async function run() {
     });
 
     // delete asset from the asset list
-    app.delete("/api/v1/admin/deleteAsset/:id", async (req, res) => {
+    app.delete("/api/v1/admin/deleteAsset/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
 
@@ -154,7 +171,7 @@ async function run() {
     });
 
     // request for all asset of the company
-    app.get("/api/v1/allAssets/:company", async (req, res) => {
+    app.get("/api/v1/allAssets/:company", verifyToken, async (req, res) => {
       const company = req.params.company;
       // console.log(company);
       const query = { company };
@@ -169,7 +186,7 @@ async function run() {
 
     // insert user into database
     // ? create user in users collection if it does not already exits
-    app.post("/api/v1/users", async (req, res) => {
+    app.post("/api/v1/users", verifyToken, async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
@@ -199,8 +216,11 @@ async function run() {
     });
 
     // update the admin package payment from unpaid to paid
-    app.patch("/api/v1/users/admin/:email", async (req, res) => {
+    app.patch("/api/v1/users/admin/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
       const data = req.body;
       const query = { email: email };
       const updateDocument = {
@@ -214,7 +234,7 @@ async function run() {
     });
 
     // ? Payment Intent
-    app.post("/api/v1/create-payment-intent", async (req, res) => {
+    app.post("/api/v1/create-payment-intent", verifyToken, async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
 
@@ -230,7 +250,7 @@ async function run() {
     });
 
     // saved the payment history
-    app.post("/api/v1/payments", async (req, res) => {
+    app.post("/api/v1/payments", verifyToken, async (req, res) => {
       const payment = req.body;
       const result = await paymentCollection.insertOne(payment);
       res.send(result);
@@ -238,7 +258,7 @@ async function run() {
 
     // Assets related api
 
-    app.get("/api/v1/admin/allAssets/:id", async (req, res) => {
+    app.get("/api/v1/admin/allAssets/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await assetCollection.findOne(query);
@@ -246,14 +266,14 @@ async function run() {
     });
 
     //? add a new asset to database
-    app.post("/api/v1/admin/addAnAsset", async (req, res) => {
+    app.post("/api/v1/admin/addAnAsset", verifyToken, async (req, res) => {
       const asset = req.body;
       const result = await assetCollection.insertOne(asset);
       res.send(result);
     });
 
     //? add an api to update an asset
-    app.patch("/api/v1/admin/updateAnAsset/:id", async (req, res) => {
+    app.patch("/api/v1/admin/updateAnAsset/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       // console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -267,7 +287,7 @@ async function run() {
     });
 
     // update profile user data
-    app.patch("/api/v1/updateProfile/:email", async (req, res) => {
+    app.patch("/api/v1/updateProfile/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
       // console.log(filter);
@@ -282,21 +302,21 @@ async function run() {
     });
 
     // save asset request api
-    app.post("/api/v1/user/makeAssetRequest", async (req, res) => {
+    app.post("/api/v1/user/makeAssetRequest", verifyToken, async (req, res) => {
       const request = req.body;
       const result = await requestCollection.insertOne(request);
       res.send(result);
     });
 
     // save custom request  api
-    app.post("/api/v1/user/makeCustomRequest", async (req, res) => {
+    app.post("/api/v1/user/makeCustomRequest", verifyToken, async (req, res) => {
       const custRequest = req.body;
       const result = await customRequestsCol.insertOne(custRequest);
       res.send(result);
     });
 
     // add a user to the team via admin
-    app.put("/api/v1/admin/addToTeam/:id", async (req, res) => {
+    app.put("/api/v1/admin/addToTeam/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const data = req.body;
@@ -309,7 +329,7 @@ async function run() {
     });
 
     // remove a user to the team via admin
-    app.put("/api/v1/admin/removeFromTeam/:id", async (req, res) => {
+    app.put("/api/v1/admin/removeFromTeam/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const data = req.body;
