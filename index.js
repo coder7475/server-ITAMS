@@ -339,6 +339,16 @@ async function run() {
         .send({ success: true });
     });
 
+    // clear cookies
+    app.get("/api/v1/clear-token", async (req, res) => {
+      res.clearCookie("token", {
+        maxAge: 0,
+        secure: process.env.NODE_ENV === "production" ? true: false, 
+        sameSite: process.env.NODE_ENV === "production"? "none" : "strict",
+        path: "/"
+      }).send({ success: true });
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
