@@ -11,9 +11,9 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "https://assetit-18c66.web.app/",
-      "https://assetit-18c66.firebaseapp.com/",
+      // "http://localhost:5173",
+      "https://assetit-18c66.web.app",
+      "https://assetit-18c66.firebaseapp.com",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
