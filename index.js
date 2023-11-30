@@ -371,10 +371,8 @@ async function run() {
       const limitedStockItems = await assetCollection
         .find(stock)
         .toArray();
-      const returnableItems = await requestCollection
-        .countDocuments({ type: "returnable "})
-      const nonReturnableItems = await requestCollection
-        .countDocuments({ type: "non-returnable" })
+      const returnableItems = await requestCollection.countDocuments({ type: "returnable"})
+      const nonReturnableItems = await requestCollection.countDocuments({ type: "non-returnable" })
         
 
       res.send({ pendingRequests, topRequestedItems, limitedStockItems, returnableItems, nonReturnableItems });
