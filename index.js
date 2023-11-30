@@ -21,9 +21,7 @@ app.use(cookieParser());
 // define middleware
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
-  console.log(token);
-  if (!token)
-    return res.status(401).send({ message: "Unauthorized" });
+  if (!token) return res.status(401).send({ message: "Unauthorized" });
 
   // verify with jwt token
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
@@ -67,110 +65,138 @@ async function run() {
     });
 
     // get all requests from the database
-    app.get("/api/v1/admin/allRequest/:company", verifyToken, async (req, res) => {
-      const company = req.params.company;
-      const query = { company };
-      // console.log(query);
-      // Search By name
-      const value = req?.query?.search;
+    app.get(
+      "/api/v1/admin/allRequest/:company",
+      verifyToken,
+      async (req, res) => {
+        const company = req.params.company;
+        const query = { company };
+        // console.log(query);
+        // Search By name
+        const value = req?.query?.search;
 
-      if (value) {
-        query["name"] = { $regex: value, $options: "i" };
+        if (value) {
+          query["name"] = { $regex: value, $options: "i" };
+        }
+        const result = await requestCollection.find(query).toArray();
+        res.send(result);
       }
-      const result = await requestCollection.find(query).toArray();
-      res.send(result);
-    });
+    );
     // approve request
-    app.put("/api/v1/admin/approveRequest/:name", verifyToken, async (req, res) => {
-      const name = req.params.name;
-      const filter = { name };
+    app.put(
+      "/api/v1/admin/approveRequest/:name",
+      verifyToken,
+      async (req, res) => {
+        const name = req.params.name;
+        const filter = { name };
 
-      // const data = req.body;
-      // console.log(data);
-      const updatedDoc = {
-        $set: {
-          status: "approved",
-        },
-      };
-      const updatedDoc2 = {
-        $inc: { quantity: -1 },
-      };
-      // console.log(data);
-      const result = await requestCollection.updateOne(filter, updatedDoc);
-      const result2 = await assetCollection.updateOne(filter, updatedDoc2);
-      res.send({ result, result2 });
-    });
+        // const data = req.body;
+        // console.log(data);
+        const updatedDoc = {
+          $set: {
+            status: "approved",
+          },
+        };
+        const updatedDoc2 = {
+          $inc: { quantity: -1, requested: 1 },
+        };
+        // console.log(data);
+        const result = await requestCollection.updateOne(filter, updatedDoc);
+        const result2 = await assetCollection.updateOne(filter, updatedDoc2);
+        res.send({ result, result2 });
+      }
+    );
 
     // rejectRequest
-    app.put("/api/v1/admin/rejectRequest/:name", verifyToken, async (req, res) => {
-      const name = req.params.name;
-      const filter = { name };
+    app.put(
+      "/api/v1/admin/rejectRequest/:name",
+      verifyToken,
+      async (req, res) => {
+        const name = req.params.name;
+        const filter = { name };
 
-      // const data = req.body;
-      // console.log(data);
-      const updatedDoc = {
-        $set: {
-          status: "rejected",
-        },
-      };
+        // const data = req.body;
+        // console.log(data);
+        const updatedDoc = {
+          $set: {
+            status: "rejected",
+          },
+        };
 
-      // console.log(data);
-      const result = await requestCollection.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
+        // console.log(data);
+        const result = await requestCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      }
+    );
 
     // reject custom Request
-    app.put("/api/v1/admin/rejectCustomRequest/:name", verifyToken, async (req, res) => {
-      const name = req.params.name;
-      const filter = { name };
+    app.put(
+      "/api/v1/admin/rejectCustomRequest/:name",
+      verifyToken,
+      async (req, res) => {
+        const name = req.params.name;
+        const filter = { name };
 
-      const updatedDoc = {
-        $set: {
-          status: "rejected",
-        },
-      };
+        const updatedDoc = {
+          $set: {
+            status: "rejected",
+          },
+        };
 
-      // console.log(data);
-      const result = await customRequestsCol.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
+        // console.log(data);
+        const result = await customRequestsCol.updateOne(filter, updatedDoc);
+        res.send(result);
+      }
+    );
 
     // get all custom request
-    app.get("/api/v1/admin/allCustomRequest/:company", verifyToken, async (req, res) => {
-      const company = req.params.company;
-      const query = { company };
-      const result = await customRequestsCol.find(query).toArray();
-      res.send(result);
-    });
+    app.get(
+      "/api/v1/admin/allCustomRequest/:company",
+      verifyToken,
+      async (req, res) => {
+        const company = req.params.company;
+        const query = { company };
+        const result = await customRequestsCol.find(query).toArray();
+        res.send(result);
+      }
+    );
 
     // approve custom request
-    app.put("/api/v1/admin/approveCustomRequest/:name", verifyToken, async (req, res) => {
-      const name = req.params.name;
-      const filter = { name };
-      const data = req.body;
-      // const data = req.body;
-      // console.log(data);
-      const updatedDoc = {
-        $set: {
-          status: "approved",
-        },
-      };
+    app.put(
+      "/api/v1/admin/approveCustomRequest/:name",
+      verifyToken,
+      async (req, res) => {
+        const name = req.params.name;
+        const filter = { name };
+        const data = req.body;
+        // const data = req.body;
+        // console.log(data);
+        const updatedDoc = {
+          $set: {
+            status: "approved",
+          },
+        };
 
-      const added = await assetCollection.insertOne(data);
-      // console.log(data);
-      const result = await customRequestsCol.updateOne(filter, updatedDoc);
+        const added = await assetCollection.insertOne(data);
+        // console.log(data);
+        const result = await customRequestsCol.updateOne(filter, updatedDoc);
 
-      res.send({ added, result });
-    });
+        res.send({ added, result });
+      }
+    );
 
     // delete asset from the asset list
-    app.delete("/api/v1/admin/deleteAsset/:id", verifyToken, async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
+    app.delete(
+      "/api/v1/admin/deleteAsset/:id",
+      verifyToken,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
 
-      const result = await assetCollection.deleteOne(query);
-      res.send(result);
-    });
+        const result = await assetCollection.deleteOne(query);
+        res.send(result);
+      }
+    );
 
     // request for all asset of the company
     app.get("/api/v1/allAssets/:company", verifyToken, async (req, res) => {
@@ -188,7 +214,7 @@ async function run() {
 
     // insert user into database
     // ? create user in users collection if it does not already exits
-    app.post("/api/v1/users", verifyToken, async (req, res) => {
+    app.post("/api/v1/users", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
@@ -203,7 +229,7 @@ async function run() {
 
     // check if user is admin
     //? get admins details
-    app.get("/api/v1/users/admin/:email",  async (req, res) => {
+    app.get("/api/v1/users/admin/:email", async (req, res) => {
       const email = req.params.email;
 
       const query = { email: email };
@@ -221,7 +247,7 @@ async function run() {
     app.patch("/api/v1/users/admin/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       if (email !== req.decoded.email) {
-        return res.status(403).send({ message: 'forbidden access' })
+        return res.status(403).send({ message: "forbidden access" });
       }
       const data = req.body;
       const query = { email: email };
@@ -275,18 +301,22 @@ async function run() {
     });
 
     //? add an api to update an asset
-    app.patch("/api/v1/admin/updateAnAsset/:id", verifyToken, async (req, res) => {
-      const id = req.params.id;
-      // console.log(id);
-      const filter = { _id: new ObjectId(id) };
-      const data = req.body;
-      const updatedDoc = {
-        $set: data,
-      };
+    app.patch(
+      "/api/v1/admin/updateAnAsset/:id",
+      verifyToken,
+      async (req, res) => {
+        const id = req.params.id;
+        // console.log(id);
+        const filter = { _id: new ObjectId(id) };
+        const data = req.body;
+        const updatedDoc = {
+          $set: data,
+        };
 
-      const result = await assetCollection.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
+        const result = await assetCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      }
+    );
 
     // update profile user data
     app.patch("/api/v1/updateProfile/:email", verifyToken, async (req, res) => {
@@ -311,10 +341,44 @@ async function run() {
     });
 
     // save custom request  api
-    app.post("/api/v1/user/makeCustomRequest", verifyToken, async (req, res) => {
-      const custRequest = req.body;
-      const result = await customRequestsCol.insertOne(custRequest);
-      res.send(result);
+    app.post(
+      "/api/v1/user/makeCustomRequest",
+      verifyToken,
+      async (req, res) => {
+        const custRequest = req.body;
+        const result = await customRequestsCol.insertOne(custRequest);
+        res.send(result);
+      }
+    );
+
+    // admin home status
+    app.get("/api/v1/admin/homeStatus/:company", async (req, res) => {
+      const company = req.params.company;
+      const query = { company };
+      const filter = { status: "pending" };
+      const sort = { requested: -1 };
+      const stock = { quantity: { $lt: 10 } };
+
+      const pendingRequests = await requestCollection
+        .find(filter)
+        .limit(5)
+        .toArray();
+      const topRequestedItems = await assetCollection
+        .find(query)
+        .sort(sort)
+        .limit(4)
+        .toArray();
+      const limitedStockItems = await assetCollection
+        .find(stock)
+        .toArray();
+      const returnableItems = await assetCollection
+        .countDocuments({ type: "returnable"})
+      const nonReturnableItems = await assetCollection
+        .countDocuments({ type: "non-returnable" })
+        
+
+      res.send({ pendingRequests, topRequestedItems, limitedStockItems, returnableItems, nonReturnableItems });
+
     });
 
     // add a user to the team via admin
@@ -331,17 +395,21 @@ async function run() {
     });
 
     // remove a user to the team via admin
-    app.put("/api/v1/admin/removeFromTeam/:id", verifyToken, async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const data = req.body;
-      const updatedDoc = {
-        $unset: data,
-      };
-      // console.log(data);
-      const result = await userCollection.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
+    app.put(
+      "/api/v1/admin/removeFromTeam/:id",
+      verifyToken,
+      async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const data = req.body;
+        const updatedDoc = {
+          $unset: data,
+        };
+        // console.log(data);
+        const result = await userCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      }
+    );
 
     // auth jwt realted api
     // Auth related api
@@ -363,12 +431,14 @@ async function run() {
 
     // clear cookies
     app.get("/api/v1/clear-token", async (req, res) => {
-      res.clearCookie("token", {
-        maxAge: 0,
-        secure: process.env.NODE_ENV === "production" ? true: false, 
-        sameSite: process.env.NODE_ENV === "production"? "none" : "strict",
-        path: "/"
-      }).send({ success: true });
+      res
+        .clearCookie("token", {
+          maxAge: 0,
+          secure: process.env.NODE_ENV === "production" ? true : false,
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          path: "/",
+        })
+        .send({ success: true });
     });
 
     // Send a ping to confirm a successful connection
