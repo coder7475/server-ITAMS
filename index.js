@@ -11,7 +11,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173",
+      "http://localhost:5173",
       "https://assetit-18c66.web.app",
       "https://assetit-18c66.firebaseapp.com",
     ],
@@ -69,6 +69,8 @@ async function run() {
     });
 
     // get all requests from the database
+
+    // get all reques of a company
     app.get(
       "/api/v1/admin/allRequest/:company",
       verifyToken,
@@ -86,6 +88,17 @@ async function run() {
         res.send(result);
       }
     );
+
+    // get all data needed for user homer
+    app.get("/api/v1/user/homeStats/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { requesterEmail : email };
+
+      const customRequests = await customRequestsCol.find(query).toArray();
+      res.send({ customRequests });
+    })
+    
+
     // approve request
     app.put(
       "/api/v1/admin/approveRequest/:name",
