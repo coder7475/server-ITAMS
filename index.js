@@ -9,15 +9,17 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // middleware
 app.use(
-  cors({
+  cors(
+    {
     origin: [
       "http://localhost:5173",
-      "https://assetit-18c66.web.app",
-      "https://assetit-18c66.firebaseapp.com",
+      // "https://assetit-18c66.web.app",
+      // "https://assetit-18c66.firebaseapp.com",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  })
+  }
+  )
 );
 app.use(express.json());
 app.use(cookieParser());
@@ -53,7 +55,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    await client.connect();
     const myDB = client.db("assetsIT");
     const userCollection = myDB.collection("users");
     const paymentCollection = myDB.collection("payments");
@@ -368,6 +370,29 @@ async function run() {
       }
     );
 
+    // update custom request 
+    //? use requester email and request date to update the request
+    // /:email?date=date
+    app.patch("/api/v1/user/updateCustomRequest/:email", verifyToken, async (req, res) => {
+      const requesterEmail = req.params.email;
+      const date = req.query.date;
+      
+      const filter = {
+        requesterEmail,
+        date
+      }
+
+      // console.log(filter);
+      const data = req.body;
+
+      const updatedDoc = {
+        $set: data
+      }
+
+      const result = await customRequestsCol.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
     // admin home status
     app.get("/api/v1/admin/homeStatus/:company", async (req, res) => {
       const company = req.params.company;
@@ -463,8 +488,8 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
