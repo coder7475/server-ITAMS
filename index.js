@@ -94,10 +94,28 @@ async function run() {
     // get all data needed for user homer
     app.get("/api/v1/user/homeStats/:email", async (req, res) => {
       const email = req.params.email;
-      const query = { requesterEmail : email };
+      const company = req.query.company;
 
-      const customRequests = await customRequestsCol.find(query).toArray();
-      res.send({ customRequests });
+      const queryByEmail = { requesterEmail : email };
+      const queryByCompany = { company }
+
+      const currentDate = new Date();
+      const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString();
+      const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString();
+      const monthlyQuery = {
+        requestDate: {
+          $gte: startOfMonth,
+          $lte: endOfMonth
+        },
+        requesterEmail : email
+      }
+
+      const customRequests = await customRequestsCol.find(queryByEmail).toArray();
+      const pendingRequests = await requestCollection.find({ requesterEmail : email, status: "pending" }).toArray();
+      const monthlyRequests = await requestCollection.find(monthlyQuery).sort({ requestDate: -1 }).toArray();
+      const mostRequested = await assetCollection.find(queryByCompany).sort({ requested: -1 }).limit(4).toArray();
+
+      res.send({ customRequests, pendingRequests, monthlyRequests, mostRequested });
     })
     
 
